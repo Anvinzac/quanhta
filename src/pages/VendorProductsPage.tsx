@@ -153,6 +153,9 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
     </div>
 
     <section className="wrap inv-results">
+      {inventory.persistFailed && <p className="storage-warning" role="alert">
+        Bộ nhớ trình duyệt đã đầy nên thay đổi gần nhất chưa được lưu lâu dài. Hãy xoá bớt ảnh tự chụp hoặc dùng ảnh mẫu.
+      </p>}
       <p className="result-count">{filtered.length
         ? `${(currentPage - 1) * PAGE_SIZE + 1}–${Math.min(currentPage * PAGE_SIZE, filtered.length)} trong ${filtered.length} sản phẩm`
         : 'Không có sản phẩm phù hợp'}</p>

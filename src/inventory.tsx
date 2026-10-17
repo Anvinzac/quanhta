@@ -7,6 +7,8 @@ type Inventories = Record<string, Product[]>
 type InventoryContextValue = {
   inventories: Inventories
   setInventories: (update: (current: Inventories) => Inventories) => void
+  /** The latest change couldn't be written to storage (usually full because of photos). */
+  persistFailed: boolean
 }
 
 const STORAGE_KEY = 'quanhta-inventory-v1'
@@ -23,16 +25,19 @@ function readStored(): Inventories {
 
 export function InventoryProvider({ children }: { children: ReactNode }) {
   const [inventories, setInventories] = useState<Inventories>(readStored)
+  const [persistFailed, setPersistFailed] = useState(false)
 
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(inventories))
+      setPersistFailed(false)
     } catch {
-      // Storage can be full or blocked; edits still last for this visit.
+      // Edits still last for this visit; the vendor page warns that they won't survive a reload.
+      setPersistFailed(true)
     }
   }, [inventories])
 
-  const value = useMemo(() => ({ inventories, setInventories }), [inventories])
+  const value = useMemo(() => ({ inventories, setInventories, persistFailed }), [inventories, persistFailed])
   return <InventoryContext.Provider value={value}>{children}</InventoryContext.Provider>
 }
 
@@ -58,12 +63,13 @@ export function useCatalog(vendorSlug: string) {
 }
 
 export function useInventoryEditor(vendorSlug: string) {
-  const { inventories, setInventories } = useInventoryContext()
+  const { inventories, setInventories, persistFailed } = useInventoryContext()
   const change = (update: (list: Product[]) => Product[]) =>
     setInventories(current => ({ ...current, [vendorSlug]: update(current[vendorSlug] ?? baseProducts) }))
 
   return {
     isCustomised: vendorSlug in inventories,
+    persistFailed,
     save: (product: Product) => change(list =>
       list.some(item => item.id === product.id)
         ? list.map(item => item.id === product.id ? product : item)

@@ -1,6 +1,8 @@
-import { useState } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Camera, ImagePlus, Plus, Trash2 } from 'lucide-react'
+import { CameraCapture } from './CameraCapture'
 import { Sheet } from './Sheet'
+import { canUseWebcam, photoFromFile, prefersNativeCamera } from '../lib/photo'
 import { Switch } from './Switch'
 import { DEFAULT_MAX_QTY, imagePool, subcategoryOptions, type Product } from '../catalog'
 
@@ -68,7 +70,34 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
   const [draft, setDraft] = useState(initial)
   const [errors, setErrors] = useState<Errors>({})
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoError, setPhotoError] = useState('')
+  const captureInputRef = useRef<HTMLInputElement>(null)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
   const isNew = product === null
+  const ownPhoto = !imagePool.includes(draft.image)
+
+  const takePhoto = () => {
+    setPhotoError('')
+    if (prefersNativeCamera() || !canUseWebcam()) captureInputRef.current?.click()
+    else setCameraOpen(true)
+  }
+
+  const handlePhotoFile = async (input: HTMLInputElement) => {
+    const file = input.files?.[0]
+    input.value = ''
+    if (!file) return
+    setPhotoBusy(true)
+    setPhotoError('')
+    try {
+      set('image', await photoFromFile(file))
+    } catch {
+      setPhotoError('Không đọc được ảnh này. Hãy thử ảnh JPG hoặc PNG khác.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft(current => ({ ...current, [key]: value }))
   const setUnits = (update: (units: UnitDraft[]) => UnitDraft[]) => setDraft(current => ({ ...current, units: update(current.units) }))
@@ -145,13 +174,33 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
 
       <fieldset className="field image-picker">
         <legend>Ảnh sản phẩm</legend>
+        <div className="photo-main">
+          <div className="photo-preview">
+            <img src={draft.image} alt="Ảnh sản phẩm đang chọn" />
+            {photoBusy && <span className="photo-busy">Đang xử lý…</span>}
+            {ownPhoto && !photoBusy && <span className="photo-tag">Ảnh của bạn</span>}
+          </div>
+          <div className="photo-actions">
+            <button type="button" className="primary-btn" onClick={takePhoto} disabled={photoBusy}><Camera size={18} /> Chụp ảnh</button>
+            <button type="button" className="secondary-btn" onClick={() => uploadInputRef.current?.click()} disabled={photoBusy}><ImagePlus size={18} /> Tải ảnh lên</button>
+            <input ref={captureInputRef} type="file" accept="image/*" capture="environment" hidden onChange={event => handlePhotoFile(event.currentTarget)} />
+            <input ref={uploadInputRef} type="file" accept="image/*" hidden onChange={event => handlePhotoFile(event.currentTarget)} />
+          </div>
+        </div>
+        {photoError && <p className="field-error">{photoError}</p>}
+        <span className="photo-pool-label">Hoặc dùng ảnh mẫu</span>
         <div className="image-options">
           {imagePool.map((url, index) => <label key={url} className={draft.image === url ? 'selected' : ''}>
-            <input type="radio" name="edit-image" checked={draft.image === url} onChange={() => set('image', url)} aria-label={`Ảnh ${index + 1}`} />
+            <input type="radio" name="edit-image" checked={draft.image === url} onChange={() => set('image', url)} aria-label={`Ảnh mẫu ${index + 1}`} />
             <img src={url} alt="" />
           </label>)}
         </div>
       </fieldset>
+      {cameraOpen && <CameraCapture
+        onCapture={dataUrl => { set('image', dataUrl); setCameraOpen(false) }}
+        onClose={() => setCameraOpen(false)}
+        onFallback={() => { setCameraOpen(false); uploadInputRef.current?.click() }}
+      />}
 
       <div className="field">
         <label htmlFor="edit-note">Mô tả</label>
