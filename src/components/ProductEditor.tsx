@@ -244,7 +244,7 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
           })}
         </ol>
         {!draft.units.some(unit => unit.available) && <p className="editor-hint sold-out-hint">Mọi cỡ đều hết hàng: khách vẫn thấy món này nhưng không đặt được.</p>}
-        {draft.units.length < MAX_UNITS && <button className="secondary-btn add-unit" onClick={() => setUnits(units => [...units, { label: '', count: '', price: '', available: true }])}>
+        {draft.units.length < MAX_UNITS && <button className="add-unit" onClick={() => setUnits(units => [...units, { label: '', count: '', price: '', available: true }])}>
           <Plus size={18} /> Thêm cỡ
         </button>}
       </section>
