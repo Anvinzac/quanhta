@@ -10,7 +10,12 @@ export type Product = {
   tone: string
   note: string
   badge?: string
+  /** Most of this product one order may hold, across all sizes. */
+  maxQty?: number
 }
+
+export const DEFAULT_MAX_QTY = 10
+export const maxQtyOf = (product: Product) => product.maxQty ?? DEFAULT_MAX_QTY
 
 export type CategoryNode = {
   id: string
@@ -142,6 +147,7 @@ function buildProducts(): Product[] {
             image: imagePool[id % imagePool.length],
             note: `${name} thuộc nhóm ${sub.name.toLowerCase()}. Mua lẻ, mua theo ${packWord} hoặc cả ${boxWord} cho tiết kiệm.`,
             badge: indexInCategory === 0 ? 'bán chạy' : undefined,
+            maxQty: indexInCategory === 0 ? 5 : undefined,
           })
           indexInCategory += 1
         }

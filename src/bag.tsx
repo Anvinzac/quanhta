@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { productById, type Product, type Unit } from './catalog'
+import { maxQtyOf, productById, type Product, type Unit } from './catalog'
 
 export type BagLine = { productId: number, unitIndex: number, qty: number }
 
@@ -58,18 +58,39 @@ export function useBag(vendorSlug: string) {
   const sameLine = (productId: number, unitIndex: number) => (line: BagLine) =>
     line.productId === productId && line.unitIndex === unitIndex
 
+  const qtyIn = (current: BagLine[], productId: number) =>
+    current.filter(line => line.productId === productId).reduce((sum, line) => sum + line.qty, 0)
+  const limitOf = (productId: number) => {
+    const product = productById.get(productId)
+    return product ? maxQtyOf(product) : 0
+  }
+
   return {
     lines: resolved,
     count: resolved.reduce((sum, line) => sum + line.qty, 0),
     total: resolved.reduce((sum, line) => sum + line.lineTotal, 0),
-    qtyOfProduct: (productId: number) =>
-      resolved.filter(line => line.productId === productId).reduce((sum, line) => sum + line.qty, 0),
-    add: (productId: number, unitIndex: number, qty: number) => update(current =>
-      current.some(sameLine(productId, unitIndex))
-        ? current.map(line => sameLine(productId, unitIndex)(line) ? { ...line, qty: line.qty + qty } : line)
-        : [...current, { productId, unitIndex, qty }]),
-    setQty: (productId: number, unitIndex: number, qty: number) => update(current =>
-      current.map(line => sameLine(productId, unitIndex)(line) ? { ...line, qty } : line)),
+    qtyOfProduct: (productId: number) => qtyIn(lines, productId),
+    /** How many more of this product fit under its per-order limit. */
+    roomFor: (productId: number) => Math.max(0, limitOf(productId) - qtyIn(lines, productId)),
+    add: (productId: number, unitIndex: number, qty: number) => update(current => {
+      const allowed = Math.min(qty, limitOf(productId) - qtyIn(current, productId))
+      if (allowed <= 0) return current
+      return current.some(sameLine(productId, unitIndex))
+        ? current.map(line => sameLine(productId, unitIndex)(line) ? { ...line, qty: line.qty + allowed } : line)
+        : [...current, { productId, unitIndex, qty: allowed }]
+    }),
+    /** Takes one away from the smallest size of this product in the bag. */
+    removeOne: (productId: number) => update(current => {
+      const target = current
+        .filter(line => line.productId === productId)
+        .sort((a, b) => a.unitIndex - b.unitIndex)[0]
+      return target ? current.map(line => line === target ? { ...line, qty: line.qty - 1 } : line) : current
+    }),
+    setQty: (productId: number, unitIndex: number, qty: number) => update(current => {
+      const others = qtyIn(current, productId) - (current.find(sameLine(productId, unitIndex))?.qty ?? 0)
+      const capped = Math.min(qty, limitOf(productId) - others)
+      return current.map(line => sameLine(productId, unitIndex)(line) ? { ...line, qty: capped } : line)
+    }),
     clear: () => update(() => []),
   }
 }

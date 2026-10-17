@@ -41,7 +41,7 @@ export function BagSheet({ open, vendor, onClose, onCheckout }: BagSheetProps) {
               <div>
                 <h3>{line.product.name}</h3>
                 <p>{line.unit.label} · {formatPrice(line.unit.price)}</p>
-                <QtyStepper compact value={line.qty} onChange={qty => bag.setQty(line.productId, line.unitIndex, qty)} label={`Số lượng ${line.product.name}, ${line.unit.label}`} />
+                <QtyStepper compact value={line.qty} max={line.qty + bag.roomFor(line.productId)} onChange={qty => bag.setQty(line.productId, line.unitIndex, qty)} label={`Số lượng ${line.product.name}, ${line.unit.label}`} />
               </div>
               <strong>{formatPrice(line.lineTotal)}</strong>
             </li>)}
