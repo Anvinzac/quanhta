@@ -13,6 +13,7 @@ type UnitDraft = { label: string, count: string, price: string, available: boole
 type Draft = {
   name: string
   brand: string
+  supplier: string
   subId: string
   note: string
   image: string
@@ -28,12 +29,13 @@ const groupThousands = (value: string) => value ? Number(value).toLocaleString('
 
 function toDraft(product: Product | null): Draft {
   if (!product) return {
-    name: '', brand: '', subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
+    name: '', brand: '', supplier: '', subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
     units: [{ label: '1 cái', count: '1', price: '', available: true }],
   }
   return {
     name: product.name,
     brand: product.brand ?? '',
+    supplier: product.supplier ?? '',
     subId: product.path[2],
     note: product.note,
     image: product.image,
@@ -63,12 +65,14 @@ function validate(draft: Draft): Errors {
 type ProductEditorProps = {
   product: Product | null
   nextId: number
+  /** Supplier names to suggest, the shop's own first. */
+  suppliers: string[]
   onSave: (product: Product) => void
   onDelete: (id: number) => void
   onClose: () => void
 }
 
-export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: ProductEditorProps) {
+export function ProductEditor({ product, nextId, suppliers, onSave, onDelete, onClose }: ProductEditorProps) {
   const [initial] = useState(() => toDraft(product))
   const [draft, setDraft] = useState(initial)
   const [errors, setErrors] = useState<Errors>({})
@@ -158,6 +162,7 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
       id: product?.id ?? nextId,
       name: draft.name.trim(),
       brand: draft.brand.trim() || undefined,
+      supplier: draft.supplier.trim() || undefined,
       path: option.path,
       units: draft.units.map(unit => ({ label: unit.label.trim(), count: Number(unit.count), price: Number(unit.price), available: unit.available })),
       image: draft.image,
@@ -322,6 +327,16 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
         {draft.units.length < MAX_UNITS && <button className="add-unit" onClick={() => setUnits(units => [...units, { label: '', count: '', price: '', available: true }])}>
           <Plus size={18} /> Thêm cỡ
         </button>}
+      </section>
+
+      <section className="ed-card">
+        <h3 className="ed-title">Nguồn hàng</h3>
+        <p className="editor-hint">Chỉ bạn thấy, khách không thấy.</p>
+        <div className="field">
+          <label htmlFor="edit-supplier">Nhà cung cấp <span className="field-optional">không bắt buộc</span></label>
+          <input id="edit-supplier" list="known-suppliers" autoComplete="off" value={draft.supplier} maxLength={60} onChange={event => set('supplier', event.target.value)} placeholder="Ví dụ: Đại lý Vinamilk, chợ Bình Điền" />
+          <datalist id="known-suppliers">{suppliers.map(supplier => <option key={supplier} value={supplier} />)}</datalist>
+        </div>
       </section>
 
       <section className="ed-card">

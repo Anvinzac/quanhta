@@ -5,6 +5,7 @@ import { Pagination } from '../components/Pagination'
 import { ProductEditor } from '../components/ProductEditor'
 import { Switch } from '../components/Switch'
 import { VendorShell } from '../components/VendorShell'
+import { supplierOptions } from '../suppliers'
 import { categoryTrail, categoryTree, isSoldOut, isUnitAvailable, PAGE_SIZE, type Product } from '../catalog'
 import { formatPrice, vendorBySlug } from '../data'
 import { useCatalog, useInventoryEditor } from '../inventory'
@@ -60,6 +61,8 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
     return counts
   }, [all])
 
+  const suppliers = useMemo(() => supplierOptions(all.map(product => product.supplier)), [all])
+
   const partialCount = useMemo(() => all.filter(product =>
     statusOf(product) === 'listed' && product.units.some(unit => !isUnitAvailable(unit))).length, [all])
 
@@ -68,7 +71,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
     return all.filter(product =>
       (status === 'all' || statusOf(product) === status) &&
       (!category || product.path.includes(category)) &&
-      (!needle || product.name.toLowerCase().includes(needle) || product.brand?.toLowerCase().includes(needle) || String(product.id) === needle))
+      (!needle || product.name.toLowerCase().includes(needle) || product.brand?.toLowerCase().includes(needle) || product.supplier?.toLowerCase().includes(needle) || String(product.id) === needle))
   }, [all, query, status, category])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -145,7 +148,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
       <div className="adm-toolbar">
         <label className="adm-search">
           <Search size={18} aria-hidden="true" />
-          <input type="search" value={query} onChange={event => resetPage(setQuery)(event.target.value)} placeholder="Tìm tên hoặc mã sản phẩm" aria-label="Tìm sản phẩm" />
+          <input type="search" value={query} onChange={event => resetPage(setQuery)(event.target.value)} placeholder="Tìm tên, mã, hãng, nhà cung cấp" aria-label="Tìm sản phẩm" />
           {query && <button onClick={() => resetPage(setQuery)('')} aria-label="Xoá tìm kiếm"><X size={15} /></button>}
         </label>
         <label className="adm-select">
@@ -215,6 +218,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
       key={editing === 'new' ? 'new' : editing.id}
       product={editing === 'new' ? null : editing}
       nextId={inventory.nextId()}
+      suppliers={suppliers}
       onSave={save}
       onDelete={remove}
       onClose={() => setEditing(null)}

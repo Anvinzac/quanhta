@@ -3,7 +3,10 @@ export type Unit = { label: string, count: number, price: number, available?: bo
 export type Product = {
   id: number
   name: string
+  /** Who makes it, e.g. "Vinamilk". Shown to shoppers. */
   brand?: string
+  /** Who the shop buys it from, e.g. "Đại lý Vinamilk". Only the vendor sees this. */
+  supplier?: string
   /** Category ids from the department down to the subcategory. */
   path: [string, string, string]
   units: Unit[]
