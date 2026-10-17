@@ -4,6 +4,7 @@ import { ArrowLeft, ChevronRight, Heart, ListTree, MessageCircle, Minus, Plus, S
 import { BagSheet } from '../components/BagSheet'
 import { BrandWithNeighbourhood } from '../components/Brand'
 import { CategoryTree } from '../components/CategoryTree'
+import { CategoryUpChip } from '../components/CategoryUpChip'
 import { NotFound } from '../components/NotFound'
 import { Pagination } from '../components/Pagination'
 import { ProductSheet } from '../components/ProductSheet'
@@ -140,6 +141,11 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
           </label>
         </div>
         <div className="chips" aria-label="Danh mục con">
+          {chipScope && <CategoryUpChip
+            ancestors={trail.slice(0, trail.findIndex(node => node.id === chipScope.id))}
+            current={chipScope}
+            onSelect={selectCategory}
+          />}
           <button className={!selected || selected.id === chipScope?.id ? 'active' : ''} onClick={() => selectCategory(chipScope?.id)}>Tất cả</button>
           {chipNodes.map(node =>
             <button key={node.id} className={selected?.id === node.id ? 'active' : ''} onClick={() => selectCategory(node.id)}>{node.name}</button>)}

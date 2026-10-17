@@ -648,6 +648,33 @@ img { display: block; max-width: 100%; }
   background: #f8f8f2;
 }
 .chips button.active { background: #2d392f; color: #fff; border-color: #2d392f; }
+.chips .up-chip { width: 44px; padding: 0; display: grid; place-items: center; }
+.chips .up-chip.active { background: #e3e6dc; color: var(--ink); border-color: #c4c8bd; }
+
+.up-backdrop { position: fixed; inset: 0; z-index: 60; }
+.up-menu {
+  position: fixed; z-index: 61;
+  min-width: 240px;
+  background: #fbfaf6; border-radius: 16px; padding: 12px 8px 8px;
+  box-shadow: 0 14px 40px #1e231f33, 0 2px 6px #1e231f14;
+  outline: 0;
+  transform-origin: 22px top;
+  animation: drop-down 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.up-menu .mini-label { display: block; padding: 0 10px 6px; }
+.up-menu ol { list-style: none; margin: 0; padding: 0; }
+.up-menu li { padding-left: calc(var(--depth, 0) * 14px); }
+.up-menu button, .up-current {
+  width: 100%; min-height: var(--tap);
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 10px; border-radius: 10px; text-align: left; font-size: 15px;
+}
+.up-menu button { color: #3e5a44; }
+.up-menu button:hover, .up-menu button:focus-visible { background: #eceee5; }
+.up-menu button svg { color: #7c8a7a; flex: 0 0 auto; }
+.up-current { font-weight: 600; color: var(--ink); }
+.up-current svg { color: var(--coral); flex: 0 0 auto; }
+.up-current small { margin-left: auto; font: 11px var(--mono); text-transform: uppercase; letter-spacing: 0.05em; color: #8a8f86; }
 
 .storefront { background: var(--sage); padding: 16px 0 48px; min-height: 60vh; }
 .result-count { font-size: 14px; color: #6c7169; margin: 0 0 14px; }
@@ -708,7 +735,7 @@ img { display: block; max-width: 100%; }
 .results-head { margin-bottom: 16px; }
 .results-head h2 { font: 26px/1.15 var(--serif); letter-spacing: -0.4px; margin: 0 0 4px; }
 .results-head .result-count { margin: 0; }
-.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0 0 6px; font-size: 13px; color: #6c7169; }
+.crumbs { display: none; flex-wrap: wrap; align-items: center; gap: 2px; margin: 0 0 6px; font-size: 13px; color: #6c7169; }
 .crumbs span { display: inline-flex; align-items: center; gap: 2px; }
 .crumbs button { min-height: 32px; padding: 0 4px; color: #3e5a44; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #3e5a4455; }
 
@@ -984,6 +1011,7 @@ img { display: block; max-width: 100%; }
   .vendor-hero h1 { font-size: 54px; }
   .product-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .tree-btn, .shop-tools .chips { display: none; }
+  .crumbs { display: flex; }
   .shop-tools { padding-bottom: 12px; }
   .store-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; align-items: start; }
   .store-sidebar {
