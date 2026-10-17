@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { ArrowLeft, ChevronRight, Heart, ListTree, MessageCircle, Plus, Search, ShoppingBag, X } from 'lucide-react'
+import { ArrowLeft, Check, ChevronRight, Heart, ListTree, MessageCircle, Plus, Search, ShoppingBag, X } from 'lucide-react'
 import { BagSheet } from '../components/BagSheet'
 import { BrandWithNeighbourhood } from '../components/Brand'
 import { CategoryTree } from '../components/CategoryTree'
@@ -32,7 +32,14 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
   const [treeOpen, setTreeOpen] = useState(false)
   const [following, setFollowing] = useState(false)
   const [toast, setToast] = useState('')
+  const [flashId, setFlashId] = useState<number | null>(null)
   const resultsRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (flashId === null) return
+    const timer = setTimeout(() => setFlashId(null), 900)
+    return () => clearTimeout(timer)
+  }, [flashId])
 
   // Opening a shop (e.g. via its code) places you in that shop's neighbourhood.
   useEffect(() => {
@@ -91,6 +98,12 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
     bag.add(product.id, unitIndex, qty)
     setOpenProduct(null)
     setToast(`Đã thêm ${qty > 1 ? `${qty} × ` : ''}${product.units[unitIndex].label} ${product.name}`)
+  }
+
+  const quickAdd = (product: Product) => {
+    bag.add(product.id, 0, 1)
+    setFlashId(product.id)
+    setToast(`Đã thêm ${product.units[0].label} ${product.name}`)
   }
 
   const onSwitchNeighbourhood = (id: string) => {
@@ -160,16 +173,21 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
             ? <div className="empty"><Search size={32} strokeWidth={1.2} /><h3>Không tìm thấy</h3><p>Thử từ khoá hoặc danh mục khác.</p><button className="secondary-btn" onClick={() => { changeQuery(''); selectCategory(undefined) }}>Xem tất cả</button></div>
             : <div className="product-grid">{pageItems.map(product => {
                 const inBag = bag.qtyOfProduct(product.id)
-                return <button className="product-card" key={product.id} onClick={() => setOpenProduct(product)}>
-                  <div className={`product-image ${product.tone}`}>
-                    <img src={product.image} alt="" loading="lazy" />
-                    {product.badge && <span className="badge">{product.badge}</span>}
-                    {inBag > 0 && <span className="in-bag">{inBag} trong túi</span>}
-                    <span className="add-btn" aria-hidden="true"><Plus size={20} /></span>
-                  </div>
-                  <h3>{product.name}</h3>
-                  <p><strong>từ {formatPrice(product.units[0].price)}</strong> · 3 cỡ</p>
-                </button>
+                const justAdded = flashId === product.id
+                return <article className="product-card" key={product.id}>
+                  <button className="product-open" onClick={() => setOpenProduct(product)}>
+                    <div className={`product-image ${product.tone}`}>
+                      <img src={product.image} alt="" loading="lazy" />
+                      {product.badge && <span className="badge">{product.badge}</span>}
+                      {inBag > 0 && <span className="in-bag">{inBag} trong túi</span>}
+                    </div>
+                    <h3>{product.name}</h3>
+                    <p><strong>từ {formatPrice(product.units[0].price)}</strong> · 3 cỡ</p>
+                  </button>
+                  <button className={`add-btn${justAdded ? ' added' : ''}`} onClick={() => quickAdd(product)} aria-label={`Thêm ${product.units[0].label} ${product.name} vào túi`}>
+                    {justAdded ? <Check size={20} /> : <Plus size={20} />}
+                  </button>
+                </article>
               })}</div>}
 
           <Pagination page={page} totalPages={totalPages} onChange={goToPage} />
