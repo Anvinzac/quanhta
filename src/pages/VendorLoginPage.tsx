@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, Navigate, useNavigate } from '@tanstack/react-router'
-import { ArrowLeft, ArrowRight, Eye, EyeOff, KeyRound, Store } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Camera, Eye, EyeOff, KeyRound, Store, ToggleRight } from 'lucide-react'
 import { Brand } from '../components/Brand'
 import { vendorBySlug } from '../data'
 import { DEMO_ACCOUNT, formatPhone, useVendorAuth } from '../vendorAuth'
@@ -29,16 +29,27 @@ export function VendorLoginPage() {
     setError('')
   }
 
-  return <main className="vendor-login">
-    <nav className="wrap-narrow login-nav">
-      <Link to="/" className="icon-btn" aria-label="Về trang chủ"><ArrowLeft size={22} /></Link>
-      <Brand as="text" />
-      <span className="login-tag">Bán hàng</span>
-    </nav>
+  return <main className="adm-login">
+    <section className="adm-login-intro">
+      <nav>
+        <Link to="/" className="adm-login-back" aria-label="Về trang chủ"><ArrowLeft size={20} /></Link>
+        <Brand as="text" />
+        <span className="adm-tag">Bán hàng</span>
+      </nav>
+      <div className="adm-login-pitch">
+        <h1>Quản lý tiệm của bạn, <em>ngay trên điện thoại.</em></h1>
+        <ul>
+          <li><Camera size={18} /> Chụp ảnh món mới, đăng bán trong một phút</li>
+          <li><ToggleRight size={18} /> Bật tắt hàng theo từng cỡ khi hết hàng</li>
+          <li><Store size={18} /> Khách trong khu thấy thay đổi ngay</li>
+        </ul>
+      </div>
+    </section>
 
-    <section className="wrap-narrow">
-      <span className="mini-label">Dành cho chủ tiệm</span>
-      <h1>Đăng nhập để quản lý cửa hàng</h1>
+    <section className="adm-login-card">
+      <span className="adm-eyebrow">Dành cho chủ tiệm</span>
+      <h2>Đăng nhập</h2>
+      <p className="adm-login-sub">Dùng số điện thoại đã đăng ký với quanhTa.</p>
 
       <form onSubmit={submit} noValidate>
         <div className={`field${error ? ' invalid' : ''}`}>
@@ -53,17 +64,20 @@ export function VendorLoginPage() {
           </button>
         </div>
         {error && <p className="field-error" role="alert">{error}</p>}
-        <button className="primary-btn full login-submit" type="submit">Đăng nhập <ArrowRight size={18} /></button>
+        <button className="adm-btn primary block login-submit" type="submit">Đăng nhập <ArrowRight size={18} /></button>
       </form>
 
       <aside className="demo-card">
-        <div className="demo-card-head"><KeyRound size={18} /><strong>Tài khoản demo</strong></div>
+        <div className="demo-card-head">
+          <span className="adm-shop-mark" style={{ background: demoShop.color }} aria-hidden="true">{demoShop.emoji}</span>
+          <div><strong>Tài khoản demo</strong><small>{demoShop.name}</small></div>
+          <KeyRound size={18} />
+        </div>
         <dl>
           <div><dt>Số điện thoại</dt><dd>{formatPhone(DEMO_ACCOUNT.phone)}</dd></div>
           <div><dt>Mật khẩu</dt><dd>{DEMO_ACCOUNT.password}</dd></div>
-          <div><dt>Cửa hàng</dt><dd><Store size={14} /> {demoShop.name}</dd></div>
         </dl>
-        <button type="button" className="secondary-btn" onClick={fillDemo}>Điền tài khoản demo</button>
+        <button type="button" className="adm-btn block" onClick={fillDemo}>Điền tài khoản demo</button>
         <p>Bản thử nghiệm: thay đổi chỉ lưu trên trình duyệt này.</p>
       </aside>
     </section>

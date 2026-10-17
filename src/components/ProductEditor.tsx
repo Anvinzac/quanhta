@@ -151,29 +151,39 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
     </div>}
   >
     <div className="sheet-content editor">
-      <span className="mini-label">{isNew ? 'Sản phẩm mới' : `Mã SP #${product.id}`}</span>
-      <h2>{isNew ? 'Thêm sản phẩm' : 'Sửa sản phẩm'}</h2>
+      <header className="editor-head">
+        <span className="adm-eyebrow">{isNew ? 'Sản phẩm mới' : `Mã SP #${product.id}`}</span>
+        <h2>{isNew ? 'Thêm sản phẩm' : product.name}</h2>
+      </header>
 
-      <div className={`field${errors.name ? ' invalid' : ''}`}>
-        <label htmlFor="edit-name">Tên sản phẩm</label>
-        <input id="edit-name" value={draft.name} maxLength={80} onChange={event => set('name', event.target.value)} placeholder="Ví dụ: Bánh mì hoa cúc" />
-        {errors.name && <p className="field-error">{errors.name}</p>}
-      </div>
+      <section className="ed-card">
+        <h3 className="ed-title">Thông tin</h3>
+        <div className={`field${errors.name ? ' invalid' : ''}`}>
+          <label htmlFor="edit-name">Tên sản phẩm</label>
+          <input id="edit-name" value={draft.name} maxLength={80} onChange={event => set('name', event.target.value)} placeholder="Ví dụ: Bánh mì hoa cúc" />
+          {errors.name && <p className="field-error">{errors.name}</p>}
+        </div>
 
-      <div className={`field${errors.subId ? ' invalid' : ''}`}>
-        <label htmlFor="edit-category">Danh mục</label>
-        <select id="edit-category" value={draft.subId} onChange={event => set('subId', event.target.value)}>
-          <option value="" disabled>Chọn danh mục…</option>
-          {groups.map(group => <optgroup key={group} label={group}>
-            {subcategoryOptions.filter(option => option.group === group).map(option =>
-              <option key={option.path[2]} value={option.path[2]}>{option.label}</option>)}
-          </optgroup>)}
-        </select>
-        {errors.subId && <p className="field-error">{errors.subId}</p>}
-      </div>
+        <div className={`field${errors.subId ? ' invalid' : ''}`}>
+          <label htmlFor="edit-category">Danh mục</label>
+          <select id="edit-category" value={draft.subId} onChange={event => set('subId', event.target.value)}>
+            <option value="" disabled>Chọn danh mục…</option>
+            {groups.map(group => <optgroup key={group} label={group}>
+              {subcategoryOptions.filter(option => option.group === group).map(option =>
+                <option key={option.path[2]} value={option.path[2]}>{option.label}</option>)}
+            </optgroup>)}
+          </select>
+          {errors.subId && <p className="field-error">{errors.subId}</p>}
+        </div>
 
-      <fieldset className="field image-picker">
-        <legend>Ảnh sản phẩm</legend>
+        <div className="field">
+          <label htmlFor="edit-note">Mô tả</label>
+          <textarea id="edit-note" rows={3} value={draft.note} maxLength={300} onChange={event => set('note', event.target.value)} placeholder="Nguyên liệu, hạn dùng, cách bảo quản…" />
+        </div>
+      </section>
+
+      <fieldset className="ed-card image-picker">
+        <legend className="ed-title">Ảnh sản phẩm</legend>
         <div className="photo-main">
           <div className="photo-preview">
             <img src={draft.image} alt="Ảnh sản phẩm đang chọn" />
@@ -202,56 +212,55 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
         onFallback={() => { setCameraOpen(false); uploadInputRef.current?.click() }}
       />}
 
-      <div className="field">
-        <label htmlFor="edit-note">Mô tả</label>
-        <textarea id="edit-note" rows={3} value={draft.note} maxLength={300} onChange={event => set('note', event.target.value)} placeholder="Nguyên liệu, hạn dùng, cách bảo quản…" />
-      </div>
-
-      <h3 className="editor-heading">Cỡ & giá</h3>
-      <p className="editor-hint">Mỗi cỡ là một cách bán: lẻ, theo lốc, theo thùng…</p>
-      <ol className="unit-rows">
-        {draft.units.map((unit, index) => {
-          const rowError = errors.unitRows?.[index]
-          return <li key={index} className={`unit-row${rowError ? ' invalid' : ''}${unit.available ? '' : ' off'}`}>
-            <div className="unit-row-head">
-              <span>Cỡ {index + 1}</span>
-              <Switch checked={unit.available} onChange={available => setUnit(index, { available })} label={unit.available ? 'Còn hàng' : 'Hết hàng'} />
-              {draft.units.length > 1 && <button className="icon-btn unit-remove" onClick={() => setUnits(units => units.filter((_, i) => i !== index))} aria-label={`Xoá cỡ ${index + 1}`}><Trash2 size={17} /></button>}
-            </div>
-            <div className="field">
-              <label htmlFor={`unit-label-${index}`}>Tên cỡ</label>
-              <input id={`unit-label-${index}`} value={unit.label} onChange={event => setUnit(index, { label: event.target.value })} placeholder="lốc 6 chai" />
-            </div>
-            <div className="field-row">
+      <section className="ed-card">
+        <h3 className="ed-title">Cỡ & giá</h3>
+        <p className="editor-hint">Mỗi cỡ là một cách bán: lẻ, theo lốc, theo thùng…</p>
+        <ol className="unit-rows">
+          {draft.units.map((unit, index) => {
+            const rowError = errors.unitRows?.[index]
+            return <li key={index} className={`unit-row${rowError ? ' invalid' : ''}${unit.available ? '' : ' off'}`}>
+              <div className="unit-row-head">
+                <span>Cỡ {index + 1}</span>
+                <Switch checked={unit.available} onChange={available => setUnit(index, { available })} label={unit.available ? 'Còn hàng' : 'Hết hàng'} />
+                {draft.units.length > 1 && <button className="icon-btn unit-remove" onClick={() => setUnits(units => units.filter((_, i) => i !== index))} aria-label={`Xoá cỡ ${index + 1}`}><Trash2 size={17} /></button>}
+              </div>
               <div className="field">
-                <label htmlFor={`unit-count-${index}`}>Gồm (món)</label>
-                <input id={`unit-count-${index}`} inputMode="numeric" value={unit.count} onChange={event => setUnit(index, { count: digits(event.target.value).slice(0, 3) })} />
+                <label htmlFor={`unit-label-${index}`}>Tên cỡ</label>
+                <input id={`unit-label-${index}`} value={unit.label} onChange={event => setUnit(index, { label: event.target.value })} placeholder="lốc 6 chai" />
               </div>
-              <div className="field price-input">
-                <label htmlFor={`unit-price-${index}`}>Giá bán</label>
-                <input id={`unit-price-${index}`} inputMode="numeric" value={groupThousands(unit.price)} onChange={event => setUnit(index, { price: digits(event.target.value).slice(0, 9) })} placeholder="0" />
-                <span aria-hidden="true">đ</span>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor={`unit-count-${index}`}>Gồm (món)</label>
+                  <input id={`unit-count-${index}`} inputMode="numeric" value={unit.count} onChange={event => setUnit(index, { count: digits(event.target.value).slice(0, 3) })} />
+                </div>
+                <div className="field price-input">
+                  <label htmlFor={`unit-price-${index}`}>Giá bán</label>
+                  <input id={`unit-price-${index}`} inputMode="numeric" value={groupThousands(unit.price)} onChange={event => setUnit(index, { price: digits(event.target.value).slice(0, 9) })} placeholder="0" />
+                  <span aria-hidden="true">đ</span>
+                </div>
               </div>
-            </div>
-            {rowError && <p className="field-error unit-error">{rowError}</p>}
-          </li>
-        })}
-      </ol>
-      {!draft.units.some(unit => unit.available) && <p className="editor-hint sold-out-hint">Mọi cỡ đều hết hàng: khách vẫn thấy món này nhưng không đặt được.</p>}
-      {draft.units.length < MAX_UNITS && <button className="secondary-btn add-unit" onClick={() => setUnits(units => [...units, { label: '', count: '', price: '', available: true }])}>
-        <Plus size={18} /> Thêm cỡ
-      </button>}
+              {rowError && <p className="field-error unit-error">{rowError}</p>}
+            </li>
+          })}
+        </ol>
+        {!draft.units.some(unit => unit.available) && <p className="editor-hint sold-out-hint">Mọi cỡ đều hết hàng: khách vẫn thấy món này nhưng không đặt được.</p>}
+        {draft.units.length < MAX_UNITS && <button className="secondary-btn add-unit" onClick={() => setUnits(units => [...units, { label: '', count: '', price: '', available: true }])}>
+          <Plus size={18} /> Thêm cỡ
+        </button>}
+      </section>
 
-      <h3 className="editor-heading">Bán hàng</h3>
-      <div className={`field compact-field${errors.maxQty ? ' invalid' : ''}`}>
-        <label htmlFor="edit-max">Tối đa mỗi đơn</label>
-        <input id="edit-max" inputMode="numeric" value={draft.maxQty} onChange={event => set('maxQty', digits(event.target.value).slice(0, 2))} />
-        {errors.maxQty && <p className="field-error">{errors.maxQty}</p>}
-      </div>
-      <div className="toggle-list">
-        <Switch checked={draft.badge} onChange={value => set('badge', value)} label="Gắn nhãn “bán chạy”" />
-        <Switch checked={!draft.hidden} onChange={value => set('hidden', !value)} label="Hiển thị trong cửa hàng" />
-      </div>
+      <section className="ed-card">
+        <h3 className="ed-title">Bán hàng</h3>
+        <div className={`field compact-field${errors.maxQty ? ' invalid' : ''}`}>
+          <label htmlFor="edit-max">Tối đa mỗi đơn</label>
+          <input id="edit-max" inputMode="numeric" value={draft.maxQty} onChange={event => set('maxQty', digits(event.target.value).slice(0, 2))} />
+          {errors.maxQty && <p className="field-error">{errors.maxQty}</p>}
+        </div>
+        <div className="toggle-list">
+          <Switch checked={draft.badge} onChange={value => set('badge', value)} label="Gắn nhãn “bán chạy”" />
+          <Switch checked={!draft.hidden} onChange={value => set('hidden', !value)} label="Hiển thị trong cửa hàng" />
+        </div>
+      </section>
     </div>
   </Sheet>
 }

@@ -11,6 +11,7 @@ import { CheckoutPage } from './pages/CheckoutPage'
 import { HomePage } from './pages/HomePage'
 import { ShopPage } from './pages/ShopPage'
 import './styles.css'
+import './vendor.css'
 
 const rootRoute = createRootRoute({ component: () => <Outlet />, notFoundComponent: () => <NotFound /> })
 const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
