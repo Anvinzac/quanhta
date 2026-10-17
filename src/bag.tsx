@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { productById, type Product, type Unit } from './data'
+import { productById, type Product, type Unit } from './catalog'
 
 export type BagLine = { productId: number, unitIndex: number, qty: number }
 
@@ -10,7 +10,7 @@ type BagContextValue = {
   setBags: (update: (bags: Bags) => Bags) => void
 }
 
-const STORAGE_KEY = 'quanhta-bags'
+const STORAGE_KEY = 'quanhta-bags-v2'
 const BagContext = createContext<BagContextValue | null>(null)
 
 function readStoredBags(): Bags {

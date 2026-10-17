@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { MessageCircle, Plus } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { QtyStepper } from './QtyStepper'
-import { formatPrice, type Product, type Vendor } from '../data'
+import { categoryTrail, type Product } from '../catalog'
+import { formatPrice, type Vendor } from '../data'
 
 type ProductSheetProps = {
   product: Product
@@ -31,7 +32,7 @@ export function ProductSheet({ product, vendor, onClose, onAdd }: ProductSheetPr
   >
     <div className={`sheet-image ${product.tone}`}><img src={product.image} alt="" /></div>
     <div className="sheet-content">
-      <span className="mini-label">{vendor.name} · {product.category}</span>
+      <span className="mini-label">{categoryTrail(product.path[2]).slice(1).map(node => node.name).join(' › ')}</span>
       <h2>{product.name}</h2>
       <p className="sheet-note">{product.note}</p>
 

@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router'
 import { BagProvider } from './bag'
+import { categoryById } from './catalog'
 import { NeighbourhoodProvider } from './neighbourhood'
 import { NotFound } from './components/NotFound'
 import { CheckoutPage } from './pages/CheckoutPage'
@@ -9,7 +10,20 @@ import './styles.css'
 
 const rootRoute = createRootRoute({ component: () => <Outlet />, notFoundComponent: () => <NotFound /> })
 const indexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
-const shopRoute = createRoute({ getParentRoute: () => rootRoute, path: '/shops/$vendorId', component: ShopPage })
+export type ShopSearch = { cat?: string, page?: number }
+
+const shopRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/shops/$vendorId',
+  component: ShopPage,
+  validateSearch: (search: Record<string, unknown>): ShopSearch => {
+    const page = Number(search.page)
+    return {
+      cat: typeof search.cat === 'string' && categoryById.has(search.cat) ? search.cat : undefined,
+      page: Number.isInteger(page) && page > 1 ? page : undefined,
+    }
+  },
+})
 const checkoutRoute = createRoute({ getParentRoute: () => rootRoute, path: '/shops/$vendorId/checkout', component: CheckoutPage })
 const routeTree = rootRoute.addChildren([indexRoute, shopRoute, checkoutRoute])
 const router = createRouter({ routeTree, scrollRestoration: true })

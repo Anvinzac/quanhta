@@ -1,0 +1,50 @@
+import { useEffect, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
+import { categoryTrail, categoryTree, products } from '../catalog'
+
+type CategoryTreeProps = {
+  selectedId?: string
+  onSelect: (id: string | undefined) => void
+}
+
+export function CategoryTree({ selectedId, onSelect }: CategoryTreeProps) {
+  const selectedCategory = categoryTrail(selectedId)[1]?.id
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(selectedCategory ? [selectedCategory] : []))
+
+  useEffect(() => {
+    if (selectedCategory) setExpanded(current => current.has(selectedCategory) ? current : new Set(current).add(selectedCategory))
+  }, [selectedCategory])
+
+  const toggle = (id: string) => setExpanded(current => {
+    const next = new Set(current)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    return next
+  })
+
+  const item = (id: string | undefined, name: string, count: number, className: string) =>
+    <button className={`${className}${selectedId === id ? ' active' : ''}`} onClick={() => onSelect(id)} aria-current={selectedId === id ? 'true' : undefined}>
+      <span>{name}</span><small>{count}</small>
+    </button>
+
+  return <nav className="cat-tree" aria-label="Danh mục sản phẩm">
+    {item(undefined, 'Tất cả sản phẩm', products.length, 'cat-all')}
+    {categoryTree.map(department => <section key={department.id}>
+      {item(department.id, department.name, department.productCount, 'cat-dept')}
+      <ul>{department.children.map(category => {
+        const open = expanded.has(category.id)
+        return <li key={category.id}>
+          <div className="cat-row">
+            {item(category.id, category.name, category.productCount, 'cat-name')}
+            <button className={`cat-toggle${open ? ' open' : ''}`} onClick={() => toggle(category.id)} aria-expanded={open} aria-label={`${open ? 'Thu gọn' : 'Mở'} ${category.name}`}>
+              <ChevronDown size={18} />
+            </button>
+          </div>
+          {open && <ul className="cat-subs">{category.children.map(sub =>
+            <li key={sub.id}>{item(sub.id, sub.name, sub.productCount, 'cat-sub')}</li>)}
+          </ul>}
+        </li>
+      })}</ul>
+    </section>)}
+  </nav>
+}
