@@ -259,6 +259,18 @@
   padding: 0 12px; font: inherit; font-size: 16px; color: var(--ink);
 }
 .field.invalid select { border-color: #c4513f; }
+.field-optional { font-weight: 400; color: var(--adm-faint); margin-left: 4px; }
+.name-field { position: relative; }
+.name-suggest {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 5;
+  list-style: none; margin: 0; padding: 6px; max-height: 340px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--adm-line); border-radius: 14px;
+  box-shadow: 0 14px 36px #1f262124;
+}
+.name-suggest li { display: flex; flex-direction: column; gap: 2px; padding: 9px 10px; border-radius: 9px; cursor: pointer; }
+.name-suggest li.active { background: #f2f1ec; }
+.name-suggest strong { font-size: 15px; font-weight: 500; color: var(--adm-ink); }
+.name-suggest small { font-size: 12.5px; color: var(--adm-faint); }
 
 .photo-main { display: grid; grid-template-columns: 116px 1fr; gap: 12px; align-items: stretch; margin-top: 10px; }
 .photo-preview { position: relative; aspect-ratio: 1; border-radius: 14px; overflow: hidden; background: #e9e9e2; }

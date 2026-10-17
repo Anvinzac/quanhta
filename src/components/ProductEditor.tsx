@@ -1,16 +1,18 @@
-import { useRef, useState } from 'react'
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import { Camera, ImagePlus, Plus, Trash2 } from 'lucide-react'
 import { CameraCapture } from './CameraCapture'
 import { Sheet } from './Sheet'
 import { canUseWebcam, photoFromFile, prefersNativeCamera } from '../lib/photo'
 import { Switch } from './Switch'
-import { DEFAULT_MAX_QTY, imagePool, subcategoryOptions, type Product } from '../catalog'
+import { categoryTrail, DEFAULT_MAX_QTY, imagePool, subcategoryOptions, type Product } from '../catalog'
+import { knownBrands, suggestProducts, type ProductSuggestion } from '../productSuggestions'
 
 const MAX_UNITS = 5
 
 type UnitDraft = { label: string, count: string, price: string, available: boolean }
 type Draft = {
   name: string
+  brand: string
   subId: string
   note: string
   image: string
@@ -26,11 +28,12 @@ const groupThousands = (value: string) => value ? Number(value).toLocaleString('
 
 function toDraft(product: Product | null): Draft {
   if (!product) return {
-    name: '', subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
+    name: '', brand: '', subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
     units: [{ label: '1 cái', count: '1', price: '', available: true }],
   }
   return {
     name: product.name,
+    brand: product.brand ?? '',
     subId: product.path[2],
     note: product.note,
     image: product.image,
@@ -73,6 +76,10 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
   const [cameraOpen, setCameraOpen] = useState(false)
   const [photoBusy, setPhotoBusy] = useState(false)
   const [photoError, setPhotoError] = useState('')
+  const [nameFocused, setNameFocused] = useState(false)
+  const [suggestDismissed, setSuggestDismissed] = useState(false)
+  const [activeSuggestion, setActiveSuggestion] = useState(-1)
+  const suggestListId = useId()
   const captureInputRef = useRef<HTMLInputElement>(null)
   const uploadInputRef = useRef<HTMLInputElement>(null)
   const isNew = product === null
@@ -104,6 +111,35 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
   const setUnit = (index: number, patch: Partial<UnitDraft>) =>
     setUnits(units => units.map((unit, i) => i === index ? { ...unit, ...patch } : unit))
 
+  const suggestions = useMemo(() => suggestProducts(draft.name), [draft.name])
+  const showSuggestions = nameFocused && !suggestDismissed && suggestions.length > 0
+
+  const pickSuggestion = (suggestion: ProductSuggestion) => {
+    setDraft(current => ({ ...current, name: suggestion.name, brand: suggestion.brand, subId: suggestion.path[2] }))
+    setErrors(current => ({ ...current, name: undefined, subId: undefined }))
+    setSuggestDismissed(true)
+    setActiveSuggestion(-1)
+  }
+
+  const onNameKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions) return
+    const count = suggestions.length
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActiveSuggestion(index => (index + 1) % count)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveSuggestion(index => index <= 0 ? count - 1 : index - 1)
+    } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+      event.preventDefault()
+      pickSuggestion(suggestions[activeSuggestion])
+    } else if (event.key === 'Escape') {
+      // Close only the suggestions; the sheet listens for Escape on window.
+      event.nativeEvent.stopPropagation()
+      setSuggestDismissed(true)
+    }
+  }
+
   const requestClose = () => {
     if (JSON.stringify(draft) !== JSON.stringify(initial) && !window.confirm('Bỏ các thay đổi chưa lưu?')) return
     onClose()
@@ -121,6 +157,7 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
     onSave({
       id: product?.id ?? nextId,
       name: draft.name.trim(),
+      brand: draft.brand.trim() || undefined,
       path: option.path,
       units: draft.units.map(unit => ({ label: unit.label.trim(), count: Number(unit.count), price: Number(unit.price), available: unit.available })),
       image: draft.image,
@@ -158,10 +195,46 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
 
       <section className="ed-card">
         <h3 className="ed-title">Thông tin</h3>
-        <div className={`field${errors.name ? ' invalid' : ''}`}>
+        <div className={`field name-field${errors.name ? ' invalid' : ''}`}>
           <label htmlFor="edit-name">Tên sản phẩm</label>
-          <input id="edit-name" value={draft.name} maxLength={80} onChange={event => set('name', event.target.value)} placeholder="Ví dụ: Bánh mì hoa cúc" />
+          <input
+            id="edit-name"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={showSuggestions}
+            aria-controls={suggestListId}
+            aria-activedescendant={showSuggestions && activeSuggestion >= 0 ? `${suggestListId}-${activeSuggestion}` : undefined}
+            autoComplete="off"
+            value={draft.name}
+            maxLength={80}
+            onChange={event => { set('name', event.target.value); setSuggestDismissed(false); setActiveSuggestion(-1) }}
+            onFocus={() => setNameFocused(true)}
+            onBlur={() => setNameFocused(false)}
+            onKeyDown={onNameKeyDown}
+            placeholder="Gõ vài chữ: giấy ăn, gạo, nước ngọt…"
+          />
+          {showSuggestions && <ul id={suggestListId} role="listbox" className="name-suggest" aria-label="Gợi ý sản phẩm">
+            {suggestions.map((suggestion, index) => <li
+              key={suggestion.name}
+              id={`${suggestListId}-${index}`}
+              role="option"
+              aria-selected={index === activeSuggestion}
+              className={index === activeSuggestion ? 'active' : ''}
+              onMouseDown={event => event.preventDefault()}
+              onMouseEnter={() => setActiveSuggestion(index)}
+              onClick={() => pickSuggestion(suggestion)}
+            >
+              <strong>{suggestion.name}</strong>
+              <small>{suggestion.brand} · {categoryTrail(suggestion.path[2]).slice(1).map(node => node.name).join(' › ')}</small>
+            </li>)}
+          </ul>}
           {errors.name && <p className="field-error">{errors.name}</p>}
+        </div>
+
+        <div className="field">
+          <label htmlFor="edit-brand">Thương hiệu <span className="field-optional">không bắt buộc</span></label>
+          <input id="edit-brand" list="known-brands" autoComplete="off" value={draft.brand} maxLength={40} onChange={event => set('brand', event.target.value)} placeholder="Ví dụ: Vinamilk" />
+          <datalist id="known-brands">{knownBrands.map(brand => <option key={brand} value={brand} />)}</datalist>
         </div>
 
         <div className={`field${errors.subId ? ' invalid' : ''}`}>

@@ -3,6 +3,7 @@ export type Unit = { label: string, count: number, price: number, available?: bo
 export type Product = {
   id: number
   name: string
+  brand?: string
   /** Category ids from the department down to the subcategory. */
   path: [string, string, string]
   units: Unit[]
@@ -43,6 +44,7 @@ const catalog: readonly RawDepartment[] = [
         id: 'do-uong', name: 'Đồ uống', unit: 'chai', pack: ['lốc', 6], box: ['thùng', 24], start: 10, step: 2, subs: [
           { id: 'ca-phe-tra', name: 'Cà phê & trà', items: ['Cà phê sữa đá', 'Cà phê muối', 'Bạc xỉu', 'Trà tắc', 'Trà đào cam sả', 'Trà xanh không độ'] },
           { id: 'nuoc-giai-khat', name: 'Nước giải khát', items: ['Nước suối', 'Nước mía', 'Nước dừa xiêm', 'Sữa đậu nành', 'Nước sâm', 'Nước cam ép'] },
+          { id: 'bia', name: 'Bia', items: [] },
         ],
       },
       {
@@ -55,6 +57,8 @@ const catalog: readonly RawDepartment[] = [
         id: 'tap-hoa', name: 'Tạp hoá', unit: 'gói', pack: ['bộ', 3], box: ['thùng', 12], start: 6, step: 3, subs: [
           { id: 'mi-bun-kho', name: 'Mì & bún khô', items: ['Mì gói', 'Phở ăn liền', 'Bún khô', 'Miến dong', 'Hủ tiếu khô', 'Bánh đa cua', 'Cháo ăn liền'] },
           { id: 'gia-vi-gao', name: 'Gia vị & gạo', items: ['Hạt nêm', 'Bột chiên giòn', 'Đường phèn', 'Muối tôm', 'Gạo ST25'] },
+          { id: 'dau-an-nuoc-cham', name: 'Dầu ăn & nước chấm', items: [] },
+          { id: 'do-hop', name: 'Đồ hộp & đồ nguội', items: [] },
         ],
       },
       {

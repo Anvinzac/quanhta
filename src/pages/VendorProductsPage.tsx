@@ -68,7 +68,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
     return all.filter(product =>
       (status === 'all' || statusOf(product) === status) &&
       (!category || product.path.includes(category)) &&
-      (!needle || product.name.toLowerCase().includes(needle) || String(product.id) === needle))
+      (!needle || product.name.toLowerCase().includes(needle) || product.brand?.toLowerCase().includes(needle) || String(product.id) === needle))
   }, [all, query, status, category])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -183,7 +183,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
                 <img src={product.image} alt="" loading="lazy" />
                 <span className="inv-name">
                   <strong>{product.name}</strong>
-                  <small><span className="inv-id">#{product.id}</span><span className="inv-trail"> · {trail.join(' › ')}</span></small>
+                  <small><span className="inv-id">#{product.id}</span>{product.brand && <> · {product.brand}</>}<span className="inv-trail"> · {trail.join(' › ')}</span></small>
                 </span>
                 <span className="inv-cat">{trail[trail.length - 1]}<small>{trail[0]}</small></span>
                 <span className="inv-price">{priceRange(product)}</span>
