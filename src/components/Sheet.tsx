@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 type SheetProps = {
@@ -32,7 +33,8 @@ export function Sheet({ open, onClose, label, children, footer, className = '' }
 
   if (!open) return null
 
-  return <div className="sheet-overlay" onMouseDown={onClose}>
+  // Portalled so ancestors with backdrop-filter/transform can't become the containing block for the fixed overlay.
+  return createPortal(<div className="sheet-overlay" onMouseDown={onClose}>
     <div
       ref={panelRef}
       className={`sheet ${className}`}
@@ -47,5 +49,5 @@ export function Sheet({ open, onClose, label, children, footer, className = '' }
       <div className="sheet-body">{children}</div>
       {footer && <div className="sheet-footer">{footer}</div>}
     </div>
-  </div>
+  </div>, document.body)
 }

@@ -74,6 +74,23 @@ img { display: block; max-width: 100%; }
 .hood-switch svg { flex: 0 0 auto; color: var(--coral); }
 .hood-switch span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hood-switch strong { color: var(--ink-strong); font-weight: 600; }
+.hood-switch > svg:last-child { transition: transform 0.2s; }
+.hood-switch.open > svg:last-child { transform: rotate(180deg); }
+
+.hood-backdrop { position: fixed; inset: 0; z-index: 60; background: #1e231f40; animation: fade-in 0.15s ease-out; }
+.hood-dropdown {
+  position: fixed; z-index: 61;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: #fbfaf6; border-radius: 18px; padding: 14px 12px 12px;
+  box-shadow: 0 18px 48px #1e231f38, 0 2px 6px #1e231f14;
+  outline: 0;
+  transform-origin: var(--caret) top;
+  animation: drop-down 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.hood-dropdown-head { padding: 0 4px 10px; }
+.hood-dropdown-head p { margin: 4px 0 0; font-size: 13px; color: #6c7169; }
+.hood-dropdown .hood-list button { min-height: 68px; padding: 10px 12px; }
+@keyframes drop-down { from { opacity: 0; transform: translateY(-6px) scale(0.97); } }
 
 .hood-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .hood-list button {
