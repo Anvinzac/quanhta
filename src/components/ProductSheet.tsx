@@ -23,9 +23,9 @@ export function ProductSheet({ product, vendor, onClose, onAdd }: ProductSheetPr
     label={product.name}
     className="product-sheet"
     footer={<div className="sheet-actions">
-      <QtyStepper value={qty} onChange={setQty} min={1} label={`Quantity of ${product.name}`} />
+      <QtyStepper value={qty} onChange={setQty} min={1} label={`Số lượng ${product.name}`} />
       <button className="primary-btn grow" onClick={() => onAdd(product, unitIndex, qty)}>
-        <Plus size={18} /> Add · {formatPrice(unit.price * qty)}
+        <Plus size={18} /> Thêm · {formatPrice(unit.price * qty)}
       </button>
     </div>}
   >
@@ -36,21 +36,20 @@ export function ProductSheet({ product, vendor, onClose, onAdd }: ProductSheetPr
       <p className="sheet-note">{product.note}</p>
 
       <fieldset className="size-options">
-        <legend>Choose a size</legend>
+        <legend>Chọn cỡ</legend>
         {product.units.map((option, index) => {
-          const count = Number(option.label.match(/\d+/)?.[0] ?? 1)
-          const saving = singlePrice * count - option.price
+          const saving = singlePrice * option.count - option.price
           return <label key={option.label} className={index === unitIndex ? 'selected' : ''}>
             <input type="radio" name="size" checked={index === unitIndex} onChange={() => setUnitIndex(index)} />
             <span className="size-label">{option.label}</span>
-            {saving > 0 && <span className="size-saving">save {formatPrice(saving)}</span>}
+            {saving > 0 && <span className="size-saving">tiết kiệm {formatPrice(saving)}</span>}
             <strong>{formatPrice(option.price)}</strong>
           </label>
         })}
       </fieldset>
 
-      <button className="request-link" onClick={() => alert(`Your direct chat with ${vendor.name} would open here.`)}>
-        <MessageCircle size={18} /> Ask {vendor.name} about this
+      <button className="request-link" onClick={() => alert(`Khung chat với ${vendor.name} sẽ mở ở đây.`)}>
+        <MessageCircle size={18} /> Hỏi {vendor.name} về món này
       </button>
     </div>
   </Sheet>

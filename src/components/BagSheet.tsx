@@ -17,23 +17,23 @@ export function BagSheet({ open, vendor, onClose, onCheckout }: BagSheetProps) {
   return <Sheet
     open={open}
     onClose={onClose}
-    label="Your bag"
+    label="Túi của bạn"
     className="bag-sheet"
     footer={bag.count > 0 && <>
-      <div className="subtotal"><span>Subtotal</span><strong>{formatPrice(bag.total)}</strong></div>
-      <p className="fine-print">You’ll choose pickup or delivery next. Nothing is charged yet.</p>
-      <button className="primary-btn full" onClick={onCheckout}>Continue <ArrowRight size={18} /></button>
+      <div className="subtotal"><span>Tạm tính</span><strong>{formatPrice(bag.total)}</strong></div>
+      <p className="fine-print">Bạn sẽ chọn lấy tại tiệm hoặc giao hàng ở bước sau. Chưa thanh toán gì cả.</p>
+      <button className="primary-btn full" onClick={onCheckout}>Tiếp tục <ArrowRight size={18} /></button>
     </>}
   >
     <div className="sheet-content">
       <span className="mini-label">{vendor.name}</span>
-      <h2>Your bag</h2>
+      <h2>Túi của bạn</h2>
       {bag.count === 0
         ? <div className="empty">
             <ShoppingBag size={36} strokeWidth={1.2} />
-            <h3>Nothing here yet</h3>
-            <p>Tap any item to choose a size and add it.</p>
-            <button className="secondary-btn" onClick={onClose}>Keep browsing</button>
+            <h3>Túi đang trống</h3>
+            <p>Chạm vào món bất kỳ để chọn cỡ và thêm vào túi.</p>
+            <button className="secondary-btn" onClick={onClose}>Tiếp tục xem</button>
           </div>
         : <ul className="bag-lines">{bag.lines.map(line =>
             <li key={`${line.productId}-${line.unitIndex}`} className="bag-line">
@@ -41,7 +41,7 @@ export function BagSheet({ open, vendor, onClose, onCheckout }: BagSheetProps) {
               <div>
                 <h3>{line.product.name}</h3>
                 <p>{line.unit.label} · {formatPrice(line.unit.price)}</p>
-                <QtyStepper compact value={line.qty} onChange={qty => bag.setQty(line.productId, line.unitIndex, qty)} label={`Quantity of ${line.product.name}, ${line.unit.label}`} />
+                <QtyStepper compact value={line.qty} onChange={qty => bag.setQty(line.productId, line.unitIndex, qty)} label={`Số lượng ${line.product.name}, ${line.unit.label}`} />
               </div>
               <strong>{formatPrice(line.lineTotal)}</strong>
             </li>)}

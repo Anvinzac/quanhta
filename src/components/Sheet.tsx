@@ -43,7 +43,7 @@ export function Sheet({ open, onClose, label, children, footer, className = '' }
       onMouseDown={event => event.stopPropagation()}
     >
       <div className="sheet-grabber" aria-hidden="true" />
-      <button className="icon-btn sheet-close" onClick={onClose} aria-label="Close"><X size={20} /></button>
+      <button className="icon-btn sheet-close" onClick={onClose} aria-label="Đóng"><X size={20} /></button>
       <div className="sheet-body">{children}</div>
       {footer && <div className="sheet-footer">{footer}</div>}
     </div>

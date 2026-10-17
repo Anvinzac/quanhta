@@ -1,5 +1,6 @@
 import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router'
 import { BagProvider } from './bag'
+import { NeighbourhoodProvider } from './neighbourhood'
 import { NotFound } from './components/NotFound'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { HomePage } from './pages/HomePage'
@@ -15,5 +16,5 @@ const router = createRouter({ routeTree, scrollRestoration: true })
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }
 
 export default function Root() {
-  return <BagProvider><RouterProvider router={router} /></BagProvider>
+  return <NeighbourhoodProvider><BagProvider><RouterProvider router={router} /></BagProvider></NeighbourhoodProvider>
 }

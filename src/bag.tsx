@@ -10,7 +10,7 @@ type BagContextValue = {
   setBags: (update: (bags: Bags) => Bags) => void
 }
 
-const STORAGE_KEY = 'neighbourhood-bags'
+const STORAGE_KEY = 'quanhta-bags'
 const BagContext = createContext<BagContextValue | null>(null)
 
 function readStoredBags(): Bags {

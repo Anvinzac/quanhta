@@ -10,8 +10,8 @@ type QtyStepperProps = {
 
 export function QtyStepper({ value, onChange, min = 0, label, compact = false }: QtyStepperProps) {
   return <div className={`qty-stepper${compact ? ' compact' : ''}`} role="group" aria-label={label}>
-    <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label="Decrease quantity"><Minus size={16} /></button>
+    <button onClick={() => onChange(Math.max(min, value - 1))} disabled={value <= min} aria-label="Giảm số lượng"><Minus size={16} /></button>
     <output aria-live="polite">{value}</output>
-    <button onClick={() => onChange(value + 1)} aria-label="Increase quantity"><Plus size={16} /></button>
+    <button onClick={() => onChange(value + 1)} aria-label="Tăng số lượng"><Plus size={16} /></button>
   </div>
 }
