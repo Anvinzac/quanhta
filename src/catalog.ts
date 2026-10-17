@@ -7,6 +7,8 @@ export type Product = {
   brand?: string
   /** Who the shop buys it from, e.g. "Đại lý Vinamilk". Only the vendor sees this. */
   supplier?: string
+  /** Quality grade, 1 being best; tells apart goods that have no brand (rice, eggs, vegetables…). */
+  grade?: Grade
   /** Category ids from the department down to the subcategory. */
   path: [string, string, string]
   units: Unit[]
@@ -19,6 +21,10 @@ export type Product = {
   /** Hidden products stay in the vendor's list but not in the storefront. */
   hidden?: boolean
 }
+
+export const GRADES = [1, 2, 3, 4] as const
+export type Grade = typeof GRADES[number]
+export const gradeLabel = (grade: Grade) => `Loại ${grade}`
 
 export const DEFAULT_MAX_QTY = 10
 export const maxQtyOf = (product: Product) => product.maxQty ?? DEFAULT_MAX_QTY

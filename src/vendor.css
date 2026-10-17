@@ -259,6 +259,20 @@
   padding: 0 12px; font: inherit; font-size: 16px; color: var(--ink);
 }
 .field.invalid select { border-color: #c4513f; }
+.grade-field { border: 0; padding: 0; margin-inline: 0; min-width: 0; }
+.grade-field legend { padding: 0; margin-bottom: 6px; font-size: 14px; font-weight: 500; color: #4f564e; }
+.grade-options {
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  border: 1px solid #e3e3dc; border-radius: 12px; overflow: hidden; background: #f7f7f3;
+}
+.grade-options label {
+  position: relative; min-height: 46px; display: grid; place-items: center;
+  font-size: 14px; color: var(--adm-muted); cursor: pointer; white-space: nowrap;
+}
+.grade-options label + label { border-left: 1px solid #e3e3dc; }
+.grade-options label.selected { background: var(--adm-ink); color: #fff; font-weight: 500; }
+.grade-options input { position: absolute; opacity: 0; pointer-events: none; }
+.grade-options label:has(input:focus-visible) { outline: 2px solid var(--coral); outline-offset: -2px; }
 .field-optional { font-weight: 400; color: var(--adm-faint); margin-left: 4px; }
 .name-field { position: relative; }
 .name-suggest {

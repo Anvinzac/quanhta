@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MessageCircle, Plus } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { QtyStepper } from './QtyStepper'
-import { categoryTrail, firstAvailableUnit, isSoldOut, isUnitAvailable, maxQtyOf, type Product } from '../catalog'
+import { categoryTrail, firstAvailableUnit, gradeLabel, isSoldOut, isUnitAvailable, maxQtyOf, type Product } from '../catalog'
 import { formatPrice, type Vendor } from '../data'
 
 type ProductSheetProps = {
@@ -40,7 +40,7 @@ export function ProductSheet({ product, vendor, room, onClose, onAdd }: ProductS
   >
     <div className={`sheet-image ${product.tone}`}><img src={product.image} alt="" /></div>
     <div className="sheet-content">
-      <span className="mini-label">{[product.brand, ...categoryTrail(product.path[2]).slice(1).map(node => node.name)].filter(Boolean).join(' › ')}</span>
+      <span className="mini-label">{[product.brand, product.grade && gradeLabel(product.grade), ...categoryTrail(product.path[2]).slice(1).map(node => node.name)].filter(Boolean).join(' › ')}</span>
       <h2>{product.name}</h2>
       <p className="sheet-note">{product.note} Tối đa {limit} món mỗi đơn.</p>
 

@@ -9,7 +9,7 @@ import { NotFound } from '../components/NotFound'
 import { Pagination } from '../components/Pagination'
 import { ProductSheet } from '../components/ProductSheet'
 import { Sheet } from '../components/Sheet'
-import { categoryById, categoryTrail, categoryTree, firstAvailableUnit, isSoldOut, maxQtyOf, PAGE_SIZE, type Product } from '../catalog'
+import { categoryById, categoryTrail, categoryTree, firstAvailableUnit, gradeLabel, isSoldOut, maxQtyOf, PAGE_SIZE, type Product } from '../catalog'
 import { useCatalog } from '../inventory'
 import { formatDistance, formatPrice, vendorBySlug } from '../data'
 import { useBag } from '../bag'
@@ -187,7 +187,7 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
                       {soldOut && <span className="sold-out-tag">Hết hàng</span>}
                     </div>
                     <h3>{product.name}</h3>
-                    <p><strong>từ {formatPrice(Math.min(...product.units.map(unit => unit.price)))}</strong> · {product.units.length} cỡ</p>
+                    <p>{product.grade && <span className="grade-tag">{gradeLabel(product.grade)}</span>}<strong>từ {formatPrice(Math.min(...product.units.map(unit => unit.price)))}</strong> · {product.units.length} cỡ</p>
                   </button>
                   {soldOut ? null : inBag === 0
                     ? <button className="add-btn" onClick={() => quickAdd(product)} aria-label={`Thêm ${quickUnit.label} ${product.name} vào túi`}><Plus size={20} /></button>

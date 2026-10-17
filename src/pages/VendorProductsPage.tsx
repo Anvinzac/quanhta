@@ -6,7 +6,7 @@ import { ProductEditor } from '../components/ProductEditor'
 import { Switch } from '../components/Switch'
 import { VendorShell } from '../components/VendorShell'
 import { supplierOptions } from '../suppliers'
-import { categoryTrail, categoryTree, isSoldOut, isUnitAvailable, PAGE_SIZE, type Product } from '../catalog'
+import { categoryTrail, categoryTree, gradeLabel, isSoldOut, isUnitAvailable, PAGE_SIZE, type Product } from '../catalog'
 import { formatPrice, vendorBySlug } from '../data'
 import { useCatalog, useInventoryEditor } from '../inventory'
 import { useVendorAuth } from '../vendorAuth'
@@ -186,7 +186,7 @@ function Manager({ vendorSlug, ownerName }: { vendorSlug: string, ownerName: str
                 <img src={product.image} alt="" loading="lazy" />
                 <span className="inv-name">
                   <strong>{product.name}</strong>
-                  <small><span className="inv-id">#{product.id}</span>{product.brand && <> · {product.brand}</>}<span className="inv-trail"> · {trail.join(' › ')}</span></small>
+                  <small><span className="inv-id">#{product.id}</span>{product.brand && <> · {product.brand}</>}{product.grade && <> · {gradeLabel(product.grade)}</>}<span className="inv-trail"> · {trail.join(' › ')}</span></small>
                 </span>
                 <span className="inv-cat">{trail[trail.length - 1]}<small>{trail[0]}</small></span>
                 <span className="inv-price">{priceRange(product)}</span>

@@ -4,7 +4,7 @@ import { CameraCapture } from './CameraCapture'
 import { Sheet } from './Sheet'
 import { canUseWebcam, photoFromFile, prefersNativeCamera } from '../lib/photo'
 import { Switch } from './Switch'
-import { categoryTrail, DEFAULT_MAX_QTY, imagePool, subcategoryOptions, type Product } from '../catalog'
+import { categoryTrail, DEFAULT_MAX_QTY, GRADES, gradeLabel, type Grade, imagePool, subcategoryOptions, type Product } from '../catalog'
 import { knownBrands, suggestProducts, type ProductSuggestion } from '../productSuggestions'
 
 const MAX_UNITS = 5
@@ -14,6 +14,7 @@ type Draft = {
   name: string
   brand: string
   supplier: string
+  grade: Grade | null
   subId: string
   note: string
   image: string
@@ -29,13 +30,14 @@ const groupThousands = (value: string) => value ? Number(value).toLocaleString('
 
 function toDraft(product: Product | null): Draft {
   if (!product) return {
-    name: '', brand: '', supplier: '', subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
+    name: '', brand: '', supplier: '', grade: null, subId: '', note: '', image: imagePool[0], badge: false, maxQty: String(DEFAULT_MAX_QTY), hidden: false,
     units: [{ label: '1 cái', count: '1', price: '', available: true }],
   }
   return {
     name: product.name,
     brand: product.brand ?? '',
     supplier: product.supplier ?? '',
+    grade: product.grade ?? null,
     subId: product.path[2],
     note: product.note,
     image: product.image,
@@ -163,6 +165,7 @@ export function ProductEditor({ product, nextId, suppliers, onSave, onDelete, on
       name: draft.name.trim(),
       brand: draft.brand.trim() || undefined,
       supplier: draft.supplier.trim() || undefined,
+      grade: draft.grade ?? undefined,
       path: option.path,
       units: draft.units.map(unit => ({ label: unit.label.trim(), count: Number(unit.count), price: Number(unit.price), available: unit.available })),
       image: draft.image,
@@ -241,6 +244,16 @@ export function ProductEditor({ product, nextId, suppliers, onSave, onDelete, on
           <input id="edit-brand" list="known-brands" autoComplete="off" value={draft.brand} maxLength={40} onChange={event => set('brand', event.target.value)} placeholder="Ví dụ: Vinamilk" />
           <datalist id="known-brands">{knownBrands.map(brand => <option key={brand} value={brand} />)}</datalist>
         </div>
+
+        <fieldset className="field grade-field">
+          <legend>Phân loại <span className="field-optional">Loại 1 là tốt nhất</span></legend>
+          <div className="grade-options">
+            {[null, ...GRADES].map(grade => <label key={grade ?? 'none'} className={draft.grade === grade ? 'selected' : ''}>
+              <input type="radio" name="edit-grade" checked={draft.grade === grade} onChange={() => set('grade', grade)} />
+              {grade === null ? 'Không' : gradeLabel(grade)}
+            </label>)}
+          </div>
+        </fieldset>
 
         <div className={`field${errors.subId ? ' invalid' : ''}`}>
           <label htmlFor="edit-category">Danh mục</label>
