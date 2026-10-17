@@ -235,8 +235,10 @@ export function ProductEditor({ product, nextId, onSave, onDelete, onClose }: Pr
                 </div>
                 <div className="field price-input">
                   <label htmlFor={`unit-price-${index}`}>Giá bán</label>
-                  <input id={`unit-price-${index}`} inputMode="numeric" value={groupThousands(unit.price)} onChange={event => setUnit(index, { price: digits(event.target.value).slice(0, 9) })} placeholder="0" />
-                  <span aria-hidden="true">đ</span>
+                  <div className="price-box">
+                    <input id={`unit-price-${index}`} inputMode="numeric" value={groupThousands(unit.price)} onChange={event => setUnit(index, { price: digits(event.target.value).slice(0, 9) })} placeholder="0" />
+                    <span aria-hidden="true">đ</span>
+                  </div>
                 </div>
               </div>
               {rowError && <p className="field-error unit-error">{rowError}</p>}

@@ -288,10 +288,11 @@
 .unit-row-head { display: flex; align-items: center; gap: 4px; margin-right: -10px; }
 .unit-row-head > span { font: 500 12px var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--adm-faint); margin-right: auto; }
 .unit-row-head .switch { font-size: 14px; }
-.unit-row > .field { margin-top: 2px; }
-.price-input { position: relative; }
-.price-input input { padding-right: 34px; text-align: right; font-variant-numeric: tabular-nums; }
-.price-input span { position: absolute; right: 14px; bottom: 0; height: 50px; display: flex; align-items: center; color: var(--adm-muted); }
+.ed-card .unit-row .field { margin: 0; }
+.unit-row > .field-row { margin-top: 12px; }
+.price-box { position: relative; }
+.price-box input { padding-right: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.price-box span { position: absolute; top: 0; bottom: 0; right: 14px; display: flex; align-items: center; color: var(--adm-muted); pointer-events: none; }
 .add-unit { margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; min-height: var(--tap); font-size: 15px; font-weight: 500; color: var(--coral-dark); }
 .sold-out-hint { margin: 10px 0 0; color: var(--adm-red); }
 .compact-field input { max-width: 140px; }
@@ -362,8 +363,8 @@
   .photo-main { grid-template-columns: 140px 1fr; }
   .unit-row { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.7fr) minmax(0, 1fr); column-gap: 10px; }
   .unit-row > .unit-row-head, .unit-row > .unit-error { grid-column: 1 / -1; }
+  .unit-row { align-items: end; }
   .unit-row > .field-row { display: contents; }
-  .unit-row .field { margin-top: 2px; }
 }
 
 /* Table layout once there is room for columns. */
