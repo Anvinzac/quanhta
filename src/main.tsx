@@ -1,7 +1,11 @@
-import { createRootRoute, createRoute, createRouter, Outlet, RouterProvider } from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter, Outlet, redirect, RouterProvider } from '@tanstack/react-router'
 import { BagProvider } from './bag'
 import { categoryById } from './catalog'
+import { InventoryProvider } from './inventory'
 import { NeighbourhoodProvider } from './neighbourhood'
+import { VendorAuthProvider } from './vendorAuth'
+import { VendorLoginPage } from './pages/VendorLoginPage'
+import { VendorProductsPage } from './pages/VendorProductsPage'
 import { NotFound } from './components/NotFound'
 import { CheckoutPage } from './pages/CheckoutPage'
 import { HomePage } from './pages/HomePage'
@@ -25,10 +29,17 @@ const shopRoute = createRoute({
   },
 })
 const checkoutRoute = createRoute({ getParentRoute: () => rootRoute, path: '/shops/$vendorId/checkout', component: CheckoutPage })
-const routeTree = rootRoute.addChildren([indexRoute, shopRoute, checkoutRoute])
+const vendorIndexRoute = createRoute({ getParentRoute: () => rootRoute, path: '/vendor', beforeLoad: () => { throw redirect({ to: '/vendor/products' }) } })
+const vendorLoginRoute = createRoute({ getParentRoute: () => rootRoute, path: '/vendor/login', component: VendorLoginPage })
+const vendorProductsRoute = createRoute({ getParentRoute: () => rootRoute, path: '/vendor/products', component: VendorProductsPage })
+const routeTree = rootRoute.addChildren([indexRoute, shopRoute, checkoutRoute, vendorIndexRoute, vendorLoginRoute, vendorProductsRoute])
 const router = createRouter({ routeTree, scrollRestoration: true })
 declare module '@tanstack/react-router' { interface Register { router: typeof router } }
 
 export default function Root() {
-  return <NeighbourhoodProvider><BagProvider><RouterProvider router={router} /></BagProvider></NeighbourhoodProvider>
+  return <VendorAuthProvider>
+    <InventoryProvider>
+      <NeighbourhoodProvider><BagProvider><RouterProvider router={router} /></BagProvider></NeighbourhoodProvider>
+    </InventoryProvider>
+  </VendorAuthProvider>
 }

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { categoryTrail, categoryTree, products } from '../catalog'
+import { categoryTrail, categoryTree, type CategoryNode } from '../catalog'
 
 type CategoryTreeProps = {
   selectedId?: string
   onSelect: (id: string | undefined) => void
+  /** Products per category id; categories without any are left out. */
+  counts: Map<string, number>
+  total: number
 }
 
-export function CategoryTree({ selectedId, onSelect }: CategoryTreeProps) {
+export function CategoryTree({ selectedId, onSelect, counts, total }: CategoryTreeProps) {
+  const has = (node: CategoryNode) => (counts.get(node.id) ?? 0) > 0
   const selectedCategory = categoryTrail(selectedId)[1]?.id
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(selectedCategory ? [selectedCategory] : []))
 
@@ -28,20 +32,20 @@ export function CategoryTree({ selectedId, onSelect }: CategoryTreeProps) {
     </button>
 
   return <nav className="cat-tree" aria-label="Danh mục sản phẩm">
-    {item(undefined, 'Tất cả sản phẩm', products.length, 'cat-all')}
-    {categoryTree.map(department => <section key={department.id}>
-      {item(department.id, department.name, department.productCount, 'cat-dept')}
-      <ul>{department.children.map(category => {
+    {item(undefined, 'Tất cả sản phẩm', total, 'cat-all')}
+    {categoryTree.filter(has).map(department => <section key={department.id}>
+      {item(department.id, department.name, counts.get(department.id)!, 'cat-dept')}
+      <ul>{department.children.filter(has).map(category => {
         const open = expanded.has(category.id)
         return <li key={category.id}>
           <div className="cat-row">
-            {item(category.id, category.name, category.productCount, 'cat-name')}
+            {item(category.id, category.name, counts.get(category.id)!, 'cat-name')}
             <button className={`cat-toggle${open ? ' open' : ''}`} onClick={() => toggle(category.id)} aria-expanded={open} aria-label={`${open ? 'Thu gọn' : 'Mở'} ${category.name}`}>
               <ChevronDown size={18} />
             </button>
           </div>
-          {open && <ul className="cat-subs">{category.children.map(sub =>
-            <li key={sub.id}>{item(sub.id, sub.name, sub.productCount, 'cat-sub')}</li>)}
+          {open && <ul className="cat-subs">{category.children.filter(has).map(sub =>
+            <li key={sub.id}>{item(sub.id, sub.name, counts.get(sub.id)!, 'cat-sub')}</li>)}
           </ul>}
         </li>
       })}</ul>

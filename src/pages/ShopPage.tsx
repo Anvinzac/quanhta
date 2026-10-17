@@ -9,7 +9,8 @@ import { NotFound } from '../components/NotFound'
 import { Pagination } from '../components/Pagination'
 import { ProductSheet } from '../components/ProductSheet'
 import { Sheet } from '../components/Sheet'
-import { categoryById, categoryTrail, categoryTree, maxQtyOf, PAGE_SIZE, products, type Product } from '../catalog'
+import { categoryById, categoryTrail, categoryTree, firstAvailableUnit, isSoldOut, maxQtyOf, PAGE_SIZE, type Product } from '../catalog'
+import { useCatalog } from '../inventory'
 import { formatDistance, formatPrice, vendorBySlug } from '../data'
 import { useBag } from '../bag'
 import { useNeighbourhood } from '../neighbourhood'
@@ -26,6 +27,7 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
   const navigate = useNavigate({ from: '/shops/$vendorId' })
   const { cat, page: requestedPage = 1 } = useSearch({ from: '/shops/$vendorId' })
   const bag = useBag(vendor.slug)
+  const catalog = useCatalog(vendor.slug)
   const { current, setCurrent } = useNeighbourhood()
   const [query, setQuery] = useState('')
   const [openProduct, setOpenProduct] = useState<Product | null>(null)
@@ -49,14 +51,14 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
   const trail = categoryTrail(cat)
   const selected = trail[trail.length - 1]
   const chipScope = selected?.depth === 3 ? categoryById.get(selected.parentId!) : selected
-  const chipNodes = chipScope ? chipScope.children : categoryTree
+  const chipNodes = (chipScope ? chipScope.children : categoryTree).filter(node => catalog.counts.has(node.id))
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return products.filter(product =>
+    return catalog.listed.filter(product =>
       (!cat || product.path.includes(cat)) &&
       (!needle || product.name.toLowerCase().includes(needle)))
-  }, [cat, query])
+  }, [catalog.listed, cat, query])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const page = Math.min(requestedPage, totalPages)
@@ -96,8 +98,9 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
 
   const quickAdd = (product: Product) => {
     const room = bag.roomFor(product.id)
-    if (room === 0) return
-    bag.add(product.id, 0, 1)
+    const unitIndex = firstAvailableUnit(product)
+    if (room === 0 || unitIndex < 0) return
+    bag.add(product.id, unitIndex, 1)
     if (room === 1) setToast(`Đã đạt tối đa ${maxQtyOf(product)} ${product.name} mỗi đơn`)
   }
 
@@ -155,7 +158,7 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
 
     <section className="storefront">
       <div className="wrap store-layout">
-        <aside className="store-sidebar"><CategoryTree selectedId={cat} onSelect={selectCategory} /></aside>
+        <aside className="store-sidebar"><CategoryTree selectedId={cat} onSelect={selectCategory} counts={catalog.counts} total={catalog.listed.length} /></aside>
 
         <div className="store-main">
           <div className="results-head" ref={resultsRef}>
@@ -174,17 +177,20 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
             : <div className="product-grid">{pageItems.map(product => {
                 const inBag = bag.qtyOfProduct(product.id)
                 const atLimit = bag.roomFor(product.id) === 0
-                return <article className="product-card" key={product.id}>
+                const soldOut = isSoldOut(product)
+                const quickUnit = product.units[Math.max(0, firstAvailableUnit(product))]
+                return <article className={`product-card${soldOut ? ' sold-out' : ''}`} key={product.id}>
                   <button className="product-open" onClick={() => setOpenProduct(product)}>
                     <div className={`product-image ${product.tone}`}>
                       <img src={product.image} alt="" loading="lazy" />
-                      {product.badge && <span className="badge">{product.badge}</span>}
+                      {product.badge && !soldOut && <span className="badge">{product.badge}</span>}
+                      {soldOut && <span className="sold-out-tag">Hết hàng</span>}
                     </div>
                     <h3>{product.name}</h3>
-                    <p><strong>từ {formatPrice(product.units[0].price)}</strong> · 3 cỡ</p>
+                    <p><strong>từ {formatPrice(Math.min(...product.units.map(unit => unit.price)))}</strong> · {product.units.length} cỡ</p>
                   </button>
-                  {inBag === 0
-                    ? <button className="add-btn" onClick={() => quickAdd(product)} aria-label={`Thêm ${product.units[0].label} ${product.name} vào túi`}><Plus size={20} /></button>
+                  {soldOut ? null : inBag === 0
+                    ? <button className="add-btn" onClick={() => quickAdd(product)} aria-label={`Thêm ${quickUnit.label} ${product.name} vào túi`}><Plus size={20} /></button>
                     : <div className="card-stepper" role="group" aria-label={`${product.name}: ${inBag} trong túi`}>
                         <button onClick={() => bag.removeOne(product.id)} aria-label={inBag === 1 ? `Bỏ ${product.name} khỏi túi` : `Bớt 1 ${product.name}`}>
                           {inBag === 1 ? <Trash2 size={17} /> : <Minus size={18} />}
@@ -219,7 +225,7 @@ function Shop({ vendorSlug }: { vendorSlug: string }) {
       <div className="sheet-content">
         <span className="mini-label">{vendor.name}</span>
         <h2>Danh mục</h2>
-        <CategoryTree selectedId={cat} onSelect={selectCategory} />
+        <CategoryTree selectedId={cat} onSelect={selectCategory} counts={catalog.counts} total={catalog.listed.length} />
       </div>
     </Sheet>
     {openProduct && <ProductSheet key={openProduct.id} product={openProduct} vendor={vendor} room={bag.roomFor(openProduct.id)} onClose={() => setOpenProduct(null)} onAdd={addToBag} />}

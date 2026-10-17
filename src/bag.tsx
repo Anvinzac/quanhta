@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { maxQtyOf, productById, type Product, type Unit } from './catalog'
+import { isUnitAvailable, maxQtyOf, type Product, type Unit } from './catalog'
+import { useCatalog } from './inventory'
 
 export type BagLine = { productId: number, unitIndex: number, qty: number }
 
@@ -44,16 +45,23 @@ export function useBag(vendorSlug: string) {
   const context = useContext(BagContext)
   if (!context) throw new Error('useBag must be used inside BagProvider')
   const { bags, setBags } = context
+  const { byId: productById } = useCatalog(vendorSlug)
   const lines = bags[vendorSlug] ?? []
 
-  const resolved: ResolvedLine[] = lines.flatMap(line => {
+  // Lines for products the vendor has since hidden, deleted or sold out drop out of the bag.
+  const isLive = (line: BagLine) => {
     const product = productById.get(line.productId)
     const unit = product?.units[line.unitIndex]
-    return product && unit ? [{ ...line, product, unit, lineTotal: unit.price * line.qty }] : []
+    return Boolean(product && !product.hidden && unit && isUnitAvailable(unit))
+  }
+  const resolved: ResolvedLine[] = lines.filter(isLive).map(line => {
+    const product = productById.get(line.productId)!
+    const unit = product.units[line.unitIndex]
+    return { ...line, product, unit, lineTotal: unit.price * line.qty }
   })
 
   const update = (change: (lines: BagLine[]) => BagLine[]) =>
-    setBags(all => ({ ...all, [vendorSlug]: change(all[vendorSlug] ?? []).filter(line => line.qty > 0) }))
+    setBags(all => ({ ...all, [vendorSlug]: change((all[vendorSlug] ?? []).filter(isLive)).filter(line => line.qty > 0) }))
 
   const sameLine = (productId: number, unitIndex: number) => (line: BagLine) =>
     line.productId === productId && line.unitIndex === unitIndex
@@ -69,9 +77,9 @@ export function useBag(vendorSlug: string) {
     lines: resolved,
     count: resolved.reduce((sum, line) => sum + line.qty, 0),
     total: resolved.reduce((sum, line) => sum + line.lineTotal, 0),
-    qtyOfProduct: (productId: number) => qtyIn(lines, productId),
+    qtyOfProduct: (productId: number) => qtyIn(resolved, productId),
     /** How many more of this product fit under its per-order limit. */
-    roomFor: (productId: number) => Math.max(0, limitOf(productId) - qtyIn(lines, productId)),
+    roomFor: (productId: number) => Math.max(0, limitOf(productId) - qtyIn(resolved, productId)),
     add: (productId: number, unitIndex: number, qty: number) => update(current => {
       const allowed = Math.min(qty, limitOf(productId) - qtyIn(current, productId))
       if (allowed <= 0) return current

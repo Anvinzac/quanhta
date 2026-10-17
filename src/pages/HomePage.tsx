@@ -168,7 +168,7 @@ export function HomePage() {
           <span className="mini-label">Dành cho người bán</span>
           <h2>Khu phố là mặt tiền của bạn.</h2>
           <p>Cách bán hàng nhẹ nhàng hơn cho những gì bạn làm ra. Đăng sản phẩm, nhận đơn và trò chuyện trực tiếp với hàng xóm.</p>
-          <button className="primary-btn" onClick={() => alert('Tính năng đăng ký bán hàng sắp ra mắt.')}>Bắt đầu bán <ArrowRight size={18} /></button>
+          <Link to="/vendor/login" className="primary-btn">Đăng nhập bán hàng <ArrowRight size={18} /></Link>
         </div>
         <div className="sell-stats">
           <div><strong>0%</strong><span>phí nền tảng trong giai đoạn đầu</span></div>

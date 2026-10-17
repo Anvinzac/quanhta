@@ -1,4 +1,4 @@
-export type Unit = { label: string, count: number, price: number }
+export type Unit = { label: string, count: number, price: number, available?: boolean }
 
 export type Product = {
   id: number
@@ -12,10 +12,15 @@ export type Product = {
   badge?: string
   /** Most of this product one order may hold, across all sizes. */
   maxQty?: number
+  /** Hidden products stay in the vendor's list but not in the storefront. */
+  hidden?: boolean
 }
 
 export const DEFAULT_MAX_QTY = 10
 export const maxQtyOf = (product: Product) => product.maxQty ?? DEFAULT_MAX_QTY
+export const isUnitAvailable = (unit: Unit) => unit.available !== false
+export const isSoldOut = (product: Product) => !product.units.some(isUnitAvailable)
+export const firstAvailableUnit = (product: Product) => product.units.findIndex(isUnitAvailable)
 
 export type CategoryNode = {
   id: string
@@ -23,7 +28,6 @@ export type CategoryNode = {
   depth: 1 | 2 | 3
   parentId: string | null
   children: CategoryNode[]
-  productCount: number
 }
 
 type Pack = readonly [word: string, count: number]
@@ -112,7 +116,7 @@ const catalog: readonly RawDepartment[] = [
   },
 ]
 
-const imagePool = [
+export const imagePool = [
   'https://images.unsplash.com/photo-1490750967868-88aa4486c946?auto=format&fit=crop&w=900&q=85',
   'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=900&q=85',
   'https://images.unsplash.com/photo-1519915028121-7d3463d20b13?auto=format&fit=crop&w=900&q=85',
@@ -157,16 +161,14 @@ function buildProducts(): Product[] {
   return built
 }
 
+/** The shared demo catalogue every shop starts from. */
 export const products: Product[] = buildProducts()
-export const productById = new Map(products.map(product => [product.id, product]))
-
-const countUnder = (id: string) => products.filter(product => product.path.includes(id)).length
 
 export const categoryTree: CategoryNode[] = catalog.map(department => {
-  const departmentNode: CategoryNode = { id: department.id, name: department.name, depth: 1, parentId: null, children: [], productCount: countUnder(department.id) }
+  const departmentNode: CategoryNode = { id: department.id, name: department.name, depth: 1, parentId: null, children: [] }
   departmentNode.children = department.categories.map(category => {
-    const categoryNode: CategoryNode = { id: category.id, name: category.name, depth: 2, parentId: department.id, children: [], productCount: countUnder(category.id) }
-    categoryNode.children = category.subs.map(sub => ({ id: sub.id, name: sub.name, depth: 3, parentId: category.id, children: [], productCount: countUnder(sub.id) }))
+    const categoryNode: CategoryNode = { id: category.id, name: category.name, depth: 2, parentId: department.id, children: [] }
+    categoryNode.children = category.subs.map(sub => ({ id: sub.id, name: sub.name, depth: 3, parentId: category.id, children: [] }))
     return categoryNode
   })
   return departmentNode
@@ -188,3 +190,20 @@ export function categoryTrail(id: string | undefined): CategoryNode[] {
 }
 
 export const PAGE_SIZE = 20
+
+/** Product counts per category id (every level), for a given product list. */
+export function countByCategory(list: Product[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const product of list)
+    for (const id of product.path) counts.set(id, (counts.get(id) ?? 0) + 1)
+  return counts
+}
+
+/** Every subcategory with its full path, for pickers. */
+export const subcategoryOptions = categoryTree.flatMap(department =>
+  department.children.flatMap(category =>
+    category.children.map(sub => ({
+      path: [department.id, category.id, sub.id] as Product['path'],
+      label: `${category.name} › ${sub.name}`,
+      group: department.name,
+    }))))

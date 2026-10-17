@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { MessageCircle, Plus } from 'lucide-react'
 import { Sheet } from './Sheet'
 import { QtyStepper } from './QtyStepper'
-import { categoryTrail, maxQtyOf, type Product } from '../catalog'
+import { categoryTrail, firstAvailableUnit, isSoldOut, isUnitAvailable, maxQtyOf, type Product } from '../catalog'
 import { formatPrice, type Vendor } from '../data'
 
 type ProductSheetProps = {
@@ -15,7 +15,8 @@ type ProductSheetProps = {
 }
 
 export function ProductSheet({ product, vendor, room, onClose, onAdd }: ProductSheetProps) {
-  const [unitIndex, setUnitIndex] = useState(0)
+  const [unitIndex, setUnitIndex] = useState(() => Math.max(0, firstAvailableUnit(product)))
+  const soldOut = isSoldOut(product)
   const [qty, setQty] = useState(1)
   const unit = product.units[unitIndex]
   const singlePrice = product.units[0].price
@@ -26,7 +27,9 @@ export function ProductSheet({ product, vendor, room, onClose, onAdd }: ProductS
     onClose={onClose}
     label={product.name}
     className="product-sheet"
-    footer={room > 0
+    footer={soldOut
+      ? <p className="limit-note">Món này tạm hết hàng.</p>
+      : room > 0
       ? <div className="sheet-actions">
           <QtyStepper value={Math.min(qty, room)} onChange={setQty} min={1} max={room} label={`Số lượng ${product.name}`} />
           <button className="primary-btn grow" onClick={() => onAdd(product, unitIndex, Math.min(qty, room))}>
@@ -45,10 +48,13 @@ export function ProductSheet({ product, vendor, room, onClose, onAdd }: ProductS
         <legend>Chọn cỡ</legend>
         {product.units.map((option, index) => {
           const saving = singlePrice * option.count - option.price
-          return <label key={option.label} className={index === unitIndex ? 'selected' : ''}>
-            <input type="radio" name="size" checked={index === unitIndex} onChange={() => setUnitIndex(index)} />
+          const available = isUnitAvailable(option)
+          return <label key={option.label} className={`${index === unitIndex && available ? 'selected' : ''}${available ? '' : ' unavailable'}`}>
+            <input type="radio" name="size" checked={index === unitIndex && available} disabled={!available} onChange={() => setUnitIndex(index)} />
             <span className="size-label">{option.label}</span>
-            {saving > 0 && <span className="size-saving">tiết kiệm {formatPrice(saving)}</span>}
+            {available
+              ? saving > 0 && <span className="size-saving">tiết kiệm {formatPrice(saving)}</span>
+              : <span className="size-saving">hết hàng</span>}
             <strong>{formatPrice(option.price)}</strong>
           </label>
         })}
